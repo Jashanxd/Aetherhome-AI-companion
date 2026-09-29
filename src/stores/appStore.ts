@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { defaultCompanions, createCompanion } from "@/data/companions";
+
+const firstCompanion = defaultCompanions[0]!;
 import type {
   ChatMessage,
   Companion,
@@ -26,7 +28,7 @@ function newConversation(companionId: string): Conversation {
   };
 }
 
-const initialConversation = newConversation(defaultCompanions[0].id);
+const initialConversation = newConversation(firstCompanion.id);
 
 export const defaultSettings: GlobalSettings = {
   companion3dEnabled: true,
@@ -87,7 +89,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       companions: defaultCompanions,
-      activeCompanionId: defaultCompanions[0].id,
+      activeCompanionId: firstCompanion.id,
       conversations: [initialConversation],
       activeConversationId: initialConversation.id,
 
@@ -103,8 +105,8 @@ export const useAppStore = create<AppState>()(
 
       setActiveCompanion: (companionId) => {
         const existing = get().conversations.filter((c) => c.companionId === companionId);
-        if (existing.length > 0) {
-          const latest = [...existing].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+        const latest = [...existing].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+        if (latest) {
           set({ activeCompanionId: companionId, activeConversationId: latest.id });
           return;
         }
@@ -139,9 +141,11 @@ export const useAppStore = create<AppState>()(
         set((s) => {
           if (s.companions.length <= 1) return s;
           const companions = s.companions.filter((c) => c.id !== companionId);
+          const nextCompanion = companions[0];
+          if (!nextCompanion) return s;
           const conversations = s.conversations.filter((c) => c.companionId !== companionId);
           const activeCompanionId =
-            s.activeCompanionId === companionId ? companions[0].id : s.activeCompanionId;
+            s.activeCompanionId === companionId ? nextCompanion.id : s.activeCompanionId;
           const pool = conversations.filter((c) => c.companionId === activeCompanionId);
           const fallback = pool[0] ?? newConversation(activeCompanionId);
           return {
@@ -174,7 +178,8 @@ export const useAppStore = create<AppState>()(
       removeConversation: (conversationId) =>
         set((s) => {
           const conversations = s.conversations.filter((c) => c.id !== conversationId);
-          if (conversations.length === 0) {
+          const firstRemaining = conversations[0];
+          if (!firstRemaining) {
             const fresh = newConversation(s.activeCompanionId);
             return { conversations: [fresh], activeConversationId: fresh.id };
           }
@@ -182,7 +187,7 @@ export const useAppStore = create<AppState>()(
             conversations,
             activeConversationId:
               s.activeConversationId === conversationId
-                ? conversations[0].id
+                ? firstRemaining.id
                 : s.activeConversationId,
           };
         }),
