@@ -1,6 +1,6 @@
 import { Suspense, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Environment } from "@react-three/drei";
+import { Float } from "@react-three/drei";
 import * as THREE from "three";
 import type { CompanionState } from "@/types";
 
@@ -136,7 +136,6 @@ export function Companion3D({ state, hue, animation, className }: Companion3DPro
         <directionalLight position={[3, 4, 5]} intensity={0.6} />
         <Suspense fallback={null}>
           <PresenceForm state={state} hue={hue} animation={animation} />
-          <Environment preset="night" />
         </Suspense>
       </Canvas>
     </div>
