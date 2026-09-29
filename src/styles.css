@@ -51,9 +51,9 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI Variable Display", "Segoe UI", Roboto, sans-serif;
+  --font-display: ui-sans-serif, system-ui, "Segoe UI Variable Display", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
 
   --shadow-soft: 0 1px 0 0 oklch(1 0 0 / 4%) inset, 0 18px 40px -24px oklch(0 0 0 / 80%);
   --shadow-panel: 0 30px 80px -40px oklch(0 0 0 / 90%);
