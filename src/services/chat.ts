@@ -1,4 +1,4 @@
-import { request } from "./api";
+import { postJson } from "./api";
 
 export interface ChatHistoryEntry {
   role: "user" | "assistant";
@@ -21,11 +21,11 @@ export async function sendChatMessage(
   payload: ChatRequestPayload,
   signal?: AbortSignal,
 ): Promise<string> {
-  const data = await request<RawChatResponse>("/chat", {
-    method: "POST",
-    body: { message: payload.message, history: payload.history },
-    signal,
-  });
+  const body: ChatRequestPayload = {
+    message: payload.message,
+    history: payload.history,
+  };
+  const data = await postJson<RawChatResponse>("/chat", body, signal);
   const text = data.response ?? data.message ?? data.content;
   if (typeof text !== "string") {
     throw new Error("The backend replied in an unexpected format.");
