@@ -29,8 +29,8 @@ export function AddCompanionDialog({
     if (!name.trim()) return;
     addCompanion({
       name: name.trim(),
-      tagline: tagline.trim() || undefined,
-      personality: personality.trim() || undefined,
+      ...(tagline.trim() ? { tagline: tagline.trim() } : {}),
+      ...(personality.trim() ? { personality: personality.trim() } : {}),
     });
     setName("");
     setTagline("");

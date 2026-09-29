@@ -27,8 +27,8 @@ export class ApiError extends Error {
 interface RequestOptions {
   method?: "GET" | "POST";
   body?: unknown;
-  signal?: AbortSignal;
-  timeoutMs?: number;
+  signal?: AbortSignal | undefined;
+  timeoutMs?: number | undefined;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -39,12 +39,12 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   if (signal) signal.addEventListener("abort", () => controller.abort(), { once: true });
 
   try {
-    const response = await fetch(`${apiBaseUrl}${path}`, {
-      method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-      signal: controller.signal,
-    });
+    const init: RequestInit = { method, signal: controller.signal };
+    if (body !== undefined) {
+      init.headers = { "Content-Type": "application/json" };
+      init.body = JSON.stringify(body);
+    }
+    const response = await fetch(`${apiBaseUrl}${path}`, init);
 
     if (!response.ok) {
       const detail = await response.text().catch(() => "");

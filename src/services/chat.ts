@@ -3,8 +3,16 @@ import { request } from "./api";
 export interface ChatRequestPayload {
   message: string;
   /** Extra fields the backend may ignore today but will use later. */
-  model?: string | null;
-  system_prompt?: string | null;
+  model?: string | null | undefined;
+  system_prompt?: string | null | undefined;
+  temperature?: number | undefined;
+  conversation_id?: string | undefined;
+}
+
+interface ChatRequestBody {
+  message: string;
+  model?: string;
+  system_prompt?: string;
   temperature?: number;
   conversation_id?: string;
 }
@@ -20,7 +28,7 @@ export async function sendChatMessage(
   payload: ChatRequestPayload,
   signal?: AbortSignal,
 ): Promise<string> {
-  const body: Record<string, unknown> = { message: payload.message };
+  const body: ChatRequestBody = { message: payload.message };
   if (payload.model) body.model = payload.model;
   if (payload.system_prompt) body.system_prompt = payload.system_prompt;
   if (payload.temperature !== undefined) body.temperature = payload.temperature;

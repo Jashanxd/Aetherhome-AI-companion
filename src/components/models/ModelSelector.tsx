@@ -21,9 +21,11 @@ export function ModelSelector({ onRefresh }: { onRefresh: () => void }) {
   return (
     <div className="flex items-center gap-1.5">
       <Select
-        value={selectedMissing ? undefined : (selectedModelId ?? undefined)}
+        {...(selectedMissing || !selectedModelId ? {} : { value: selectedModelId })}
         onValueChange={setSelectedModel}
-        onOpenChange={(open) => open && onRefresh()}
+        onOpenChange={(open) => {
+          if (open) onRefresh();
+        }}
       >
         <SelectTrigger className="h-9 w-[15rem] border-border bg-surface text-sm">
           <Cpu className="mr-1 size-3.5 shrink-0 text-muted-foreground" />

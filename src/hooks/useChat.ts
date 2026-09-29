@@ -80,7 +80,7 @@ export function useChat() {
             message: trimmed,
             model: modelId,
             system_prompt: companion?.systemPrompt ?? null,
-            temperature: companion?.model.temperature,
+            ...(companion ? { temperature: companion.model.temperature } : {}),
             conversation_id: state.activeConversationId,
           },
           abortRef.current.signal,

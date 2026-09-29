@@ -75,7 +75,9 @@ export function CompanionSettingsDialog({
                 max={360}
                 step={1}
                 onValueChange={([hue]) =>
-                  patch({ appearance: { ...companion.appearance, hue } })
+                  patch({
+                    appearance: { ...companion.appearance, hue: hue ?? companion.appearance.hue },
+                  })
                 }
               />
             </div>
@@ -165,7 +167,12 @@ export function CompanionSettingsDialog({
                 max={2}
                 step={0.05}
                 onValueChange={([temperature]) =>
-                  patch({ model: { ...companion.model, temperature } })
+                  patch({
+                    model: {
+                      ...companion.model,
+                      temperature: temperature ?? companion.model.temperature,
+                    },
+                  })
                 }
               />
             </div>

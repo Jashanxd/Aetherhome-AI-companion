@@ -23,7 +23,8 @@ export function useModels(enabled = true) {
 
       const { selectedModelId, setSelectedModel } = useAppStore.getState();
       // Never silently switch away from a chosen model: only auto-pick when none.
-      if (!selectedModelId && models.length > 0) setSelectedModel(models[0].id);
+      const first = models[0];
+      if (!selectedModelId && first) setSelectedModel(first.id);
     } catch (error) {
       setModels([]);
       setStatus("offline");

@@ -34,7 +34,9 @@ function normalize(raw: RawModel): LocalModel | null {
       ? "loaded"
       : "available";
 
-  return { id, label: raw.name ?? id, availability, ownedBy: raw.owned_by };
+  const model: LocalModel = { id, label: raw.name ?? id, availability };
+  if (raw.owned_by) model.ownedBy = raw.owned_by;
+  return model;
 }
 
 export async function fetchModels(signal?: AbortSignal): Promise<LocalModel[]> {

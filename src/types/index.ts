@@ -16,7 +16,7 @@ export interface LocalModel {
   id: string;
   label: string;
   availability: ModelAvailability;
-  ownedBy?: string;
+  ownedBy?: string | undefined;
 }
 
 /** Categories, not hardcoded models. A companion maps a category to a real id. */
