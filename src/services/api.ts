@@ -67,3 +67,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     clearTimeout(timeout);
   }
 }
+
+/** GET / — resolves true when the local backend answers. Never throws. */
+export async function checkBackendHealth(signal?: AbortSignal): Promise<boolean> {
+  try {
+    await request<unknown>("/", { signal, timeoutMs: 8_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
