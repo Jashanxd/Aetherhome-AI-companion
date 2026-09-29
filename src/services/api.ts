@@ -68,6 +68,19 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 }
 
+/** POST a JSON document without placing payload fields in the URL. */
+export function postJson<T>(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
+  return request<T>(path, {
+    method: "POST",
+    body,
+    signal,
+  });
+}
+
 /** GET / — resolves true when the local backend answers. Never throws. */
 export async function checkBackendHealth(signal?: AbortSignal): Promise<boolean> {
   const controller = new AbortController();

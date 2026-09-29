@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { sendChatMessage } from "@/services/chat";
+import { sendChatMessage, type ChatHistoryEntry } from "@/services/chat";
 import { useAppStore, newMessageId } from "@/stores/appStore";
 import type { ChatMessage } from "@/types";
 
@@ -52,6 +52,15 @@ export function useChat() {
       const companion = state.companions.find((c) => c.id === state.activeCompanionId);
       const modelId = companion?.model.preferredModelId ?? state.selectedModelId;
 
+      // Snapshot history BEFORE adding the new user message; only real, finished turns.
+      const conversation = state.conversations.find((c) => c.id === state.activeConversationId);
+      const history: ChatHistoryEntry[] = (conversation?.messages ?? [])
+        .filter((m) => !m.error && !m.streaming && !m.imagePending && m.content.trim() !== "")
+        .map((m) => ({
+          role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+          content: m.content,
+        }));
+
       const userMessage: ChatMessage = {
         id: newMessageId(),
         role: "user",
@@ -76,13 +85,7 @@ export function useChat() {
 
       try {
         const reply = await sendChatMessage(
-          {
-            message: trimmed,
-            model: modelId,
-            system_prompt: companion?.systemPrompt ?? null,
-            ...(companion ? { temperature: companion.model.temperature } : {}),
-            conversation_id: state.activeConversationId,
-          },
+          { message: trimmed, history },
           abortRef.current.signal,
         );
         useAppStore.getState().setCompanionState("talking");
