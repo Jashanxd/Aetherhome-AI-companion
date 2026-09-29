@@ -53,12 +53,12 @@ function CompanionWorkspace() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const companion = companions.find((c) => c.id === activeCompanionId) ?? companions[0];
-
-  if (!companion) return null;
   const conversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId),
     [conversations, activeConversationId],
   );
+
+  if (!companion) return null;
 
   const effectiveModelId = companion.model.preferredModelId ?? selectedModelId;
   const modelReady =
