@@ -40,7 +40,7 @@ export function CompanionPanel({
       </div>
 
       <div className="panel aurora relative overflow-hidden">
-        <div className={`${SIZE_CLASS[settings.companionSize]} w-full`}>
+        <div className={`${SIZE_CLASS[settings.companionSize]} w-full pb-14`}>
           {settings.companion3dEnabled ? (
             <ClientOnly
               fallback={
