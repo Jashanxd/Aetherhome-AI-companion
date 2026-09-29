@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchModels } from "@/services/models";
+import { checkBackendHealth, getApiBaseUrl } from "@/services/api";
 import { useAppStore } from "@/stores/appStore";
 import type { BackendStatus } from "@/types";
 
@@ -16,18 +17,27 @@ export function useModels(enabled = true) {
   const refresh = useCallback(async () => {
     setModelsLoading(true);
     setModelsError(null);
+    const healthy = await checkBackendHealth();
+    if (!healthy) {
+      setModels([]);
+      setStatus("offline");
+      setModelsError(
+        `Cannot reach the local backend at ${getApiBaseUrl()}. Make sure it is running.`,
+      );
+      setModelsLoading(false);
+      return;
+    }
+    setStatus("online");
     try {
       const models = await fetchModels();
       setModels(models);
-      setStatus("online");
 
       const { selectedModelId, setSelectedModel } = useAppStore.getState();
-      // Never silently switch away from a chosen model: only auto-pick when none.
+      // Keep the chosen model if it still exists; otherwise auto-pick only when none chosen.
       const first = models[0];
       if (!selectedModelId && first) setSelectedModel(first.id);
     } catch (error) {
       setModels([]);
-      setStatus("offline");
       setModelsError(error instanceof Error ? error.message : "Failed to load models");
     } finally {
       setModelsLoading(false);
