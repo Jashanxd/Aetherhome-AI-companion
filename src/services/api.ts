@@ -70,10 +70,15 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 
 /** GET / — resolves true when the local backend answers. Never throws. */
 export async function checkBackendHealth(signal?: AbortSignal): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
+  if (signal) signal.addEventListener("abort", () => controller.abort(), { once: true });
   try {
-    await request<unknown>("/", { signal, timeoutMs: 8_000 });
-    return true;
+    const response = await fetch(`${apiBaseUrl}/`, { signal: controller.signal });
+    return response.ok;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
