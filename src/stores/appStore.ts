@@ -85,6 +85,63 @@ interface AppState {
   updateSettings: (patch: Partial<GlobalSettings>) => void;
 }
 
+/** Restores a saved companion, filling in any field added after it was saved. */
+function reviveCompanion(raw: unknown): Companion | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Partial<Companion>;
+  if (typeof candidate.name !== "string" || !candidate.name.trim()) return null;
+  return createCompanion(candidate as Partial<Companion> & { name: string });
+}
+
+/**
+ * Merges saved data into the store. Saved companions and conversations replace
+ * the defaults entirely; the default Mia companion is only a fallback for a
+ * first run (or unreadable data).
+ */
+function mergePersisted(persisted: unknown, current: AppState): AppState {
+  const saved = (persisted ?? {}) as Partial<AppState>;
+
+  const revived = Array.isArray(saved.companions)
+    ? saved.companions.map(reviveCompanion).filter((c): c is Companion => c !== null)
+    : [];
+  const companions = revived.length ? revived : current.companions;
+  const companionIds = new Set(companions.map((c) => c.id));
+
+  const activeCompanionId =
+    saved.activeCompanionId && companionIds.has(saved.activeCompanionId)
+      ? saved.activeCompanionId
+      : companions[0]!.id;
+
+  const savedConversations = Array.isArray(saved.conversations)
+    ? saved.conversations.filter(
+        (c): c is Conversation =>
+          !!c && typeof c === "object" && companionIds.has((c as Conversation).companionId),
+      )
+    : [];
+  const hasActiveThread = savedConversations.some((c) => c.companionId === activeCompanionId);
+  const conversations = hasActiveThread
+    ? savedConversations
+    : [newConversation(activeCompanionId), ...savedConversations];
+
+  const activeConversationId =
+    saved.activeConversationId && conversations.some((c) => c.id === saved.activeConversationId)
+      ? saved.activeConversationId
+      : (conversations.find((c) => c.companionId === activeCompanionId) ?? conversations[0]!).id;
+
+  return {
+    ...current,
+    companions,
+    activeCompanionId,
+    conversations,
+    activeConversationId,
+    selectedModelId: saved.selectedModelId ?? current.selectedModelId,
+    sidebarCollapsed: saved.sidebarCollapsed ?? current.sidebarCollapsed,
+    settings: { ...current.settings, ...(saved.settings ?? {}) },
+    memories: Array.isArray(saved.memories) ? saved.memories : current.memories,
+  };
+}
+
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
