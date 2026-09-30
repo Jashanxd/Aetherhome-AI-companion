@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { sendChatMessage, type ChatHistoryEntry } from "@/services/chat";
 import { requestNextMedia } from "@/services/media";
+import { speak, stopSpeaking } from "@/services/voice";
+import { toast } from "sonner";
 import { useAppStore, newMessageId } from "@/stores/appStore";
 import type { ChatMessage } from "@/types";
 
@@ -173,6 +175,20 @@ export function useChat() {
           "talking",
         );
 
+        const signal = abortRef.current?.signal;
+        const voicePromise =
+          useAppStore.getState().settings.voiceEnabled && companion?.voice.enabled !== false
+            ? speak(reply, {
+                voiceId: companion?.voice.voiceId,
+                signal,
+              }).catch((error: unknown) => {
+                toast("Voice unavailable", {
+                  description:
+                    error instanceof Error ? error.message : "The local voice server did not respond.",
+                });
+              })
+            : null;
+
         await reveal(
           placeholder.id,
           reply,
@@ -204,6 +220,9 @@ export function useChat() {
             })
             .catch(() => undefined);
         }
+
+        // Keep the stop button live while speech plays; errors are non-fatal.
+        if (voicePromise) await voicePromise;
       } catch (error) {
         stopReveal();
 
@@ -243,6 +262,8 @@ export function useChat() {
     abortRef.current?.abort();
 
     stopReveal();
+
+    stopSpeaking();
 
     useAppStore
       .getState()
