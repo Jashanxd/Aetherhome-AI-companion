@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { defaultCompanions, createCompanion } from "@/data/companions";
+import { defaultCompanions, createCompanion, defaultMediaResponses } from "@/data/companions";
 
 const firstCompanion = defaultCompanions[0]!;
 import type {
