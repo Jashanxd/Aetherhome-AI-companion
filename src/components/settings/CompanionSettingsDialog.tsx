@@ -335,7 +335,7 @@ export function CompanionSettingsDialog({
                 <Label>Folder path</Label>
                 <Input
                   value={media.folderPath ?? ""}
-                  placeholder="C:\\Users\\you\\Pictures\\Mia"
+                  placeholder={"C:\\Users\\you\\Pictures\\Mia"}
                   className="font-mono text-xs"
                   onChange={(e) => patchMedia({ folderPath: e.target.value || null })}
                 />
