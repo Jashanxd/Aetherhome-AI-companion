@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { sendChatMessage, type ChatHistoryEntry } from "@/services/chat";
+import { requestNextMedia } from "@/services/media";
 import { useAppStore, newMessageId } from "@/stores/appStore";
 import type { ChatMessage } from "@/types";
 
@@ -90,6 +91,15 @@ export function useChat() {
         );
         useAppStore.getState().setCompanionState("talking");
         await reveal(placeholder.id, reply);
+        // Fire-and-forget: media never blocks or affects the reply.
+        if (companion?.mediaResponses?.enabled && !abortRef.current?.signal.aborted) {
+          const companionId = companion.id;
+          void requestNextMedia(companionId)
+            .then((media) => {
+              if (media) useAppStore.getState().patchMessage(placeholder.id, { media });
+            })
+            .catch(() => undefined);
+        }
       } catch (error) {
         stopReveal();
         useAppStore.getState().patchMessage(placeholder.id, {

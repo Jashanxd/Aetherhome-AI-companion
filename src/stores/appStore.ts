@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { defaultCompanions, createCompanion } from "@/data/companions";
+import { defaultCompanions, createCompanion, defaultMediaResponses } from "@/data/companions";
 
 const firstCompanion = defaultCompanions[0]!;
 import type {
@@ -225,8 +225,18 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "local-companion-store",
-      version: 1,
+      version: 2,
       skipHydration: true,
+      migrate: (persisted, fromVersion) => {
+        const data = (persisted ?? {}) as { companions?: Array<Record<string, unknown>> };
+        if (fromVersion < 2 && Array.isArray(data.companions)) {
+          data.companions = data.companions.map((c) => ({
+            ...c,
+            mediaResponses: c["mediaResponses"] ?? defaultMediaResponses(),
+          }));
+        }
+        return data as never;
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         companions: state.companions,

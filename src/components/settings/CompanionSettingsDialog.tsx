@@ -18,8 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect, useRef } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAppStore } from "@/stores/appStore";
-import type { Companion, ImageGenerationMode } from "@/types";
+import { defaultMediaResponses } from "@/data/companions";
+import { syncMediaConfig } from "@/services/media";
+import { MEDIA_FILE_TYPES } from "@/types";
+import type { Companion, CompanionMediaResponses, ImageGenerationMode } from "@/types";
 
 const FOLLOW_GLOBAL = "__global__";
 
@@ -36,6 +41,25 @@ export function CompanionSettingsDialog({
   const models = useAppStore((s) => s.models);
 
   const patch = (p: Partial<Companion>) => update(companion.id, p);
+  const media = companion.mediaResponses ?? defaultMediaResponses();
+  const patchMedia = (p: Partial<CompanionMediaResponses>) =>
+    patch({ mediaResponses: { ...media, ...p } });
+
+  // Register this companion's folder with the backend (debounced) whenever it changes.
+  const firstRun = useRef(true);
+  const mediaKey = JSON.stringify(media);
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      syncMediaConfig(companion.id, JSON.parse(mediaKey) as CompanionMediaResponses).catch(
+        () => undefined,
+      );
+    }, 600);
+    return () => clearTimeout(t);
+  }, [companion.id, mediaKey]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,7 +75,7 @@ export function CompanionSettingsDialog({
             <TabsTrigger value="personality">Personality</TabsTrigger>
             <TabsTrigger value="model">Model</TabsTrigger>
             <TabsTrigger value="voice">Voice</TabsTrigger>
-            <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="images">Images &amp; Media</TabsTrigger>
           </TabsList>
 
           <TabsContent value="identity" className="space-y-4 pt-4">
@@ -230,6 +254,66 @@ export function CompanionSettingsDialog({
           </TabsContent>
 
           <TabsContent value="images" className="space-y-4 pt-4">
+            <div className="space-y-4 rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm">Media responses</p>
+                  <p className="text-xs text-muted-foreground">
+                    Attach one image from this companion's local folder after each reply.
+                  </p>
+                </div>
+                <Switch
+                  checked={media.enabled}
+                  onCheckedChange={(enabled) => patchMedia({ enabled })}
+                  aria-label="Toggle media responses"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Folder path</Label>
+                <Input
+                  value={media.folderPath ?? ""}
+                  placeholder={"C:\\Users\\you\\Pictures\\Mia"}
+                  className="font-mono text-xs"
+                  onChange={(e) => patchMedia({ folderPath: e.target.value || null })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Read only by your local backend. Files are never copied or uploaded.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Allowed types</Label>
+                <div className="flex flex-wrap gap-4">
+                  {MEDIA_FILE_TYPES.map((type) => (
+                    <label key={type} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={media.allowedTypes.includes(type)}
+                        onCheckedChange={(checked) =>
+                          patchMedia({
+                            allowedTypes: checked
+                              ? [...media.allowedTypes, type]
+                              : media.allowedTypes.filter((t) => t !== type),
+                          })
+                        }
+                      />
+                      {type}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm">Avoid repeats</p>
+                  <p className="text-xs text-muted-foreground">
+                    Use every file once before any repeats.
+                  </p>
+                </div>
+                <Switch
+                  checked={media.avoidRepeats}
+                  onCheckedChange={(avoidRepeats) => patchMedia({ avoidRepeats })}
+                />
+              </div>
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
                 <p className="text-sm">Image generation</p>
@@ -293,6 +377,7 @@ export function CompanionSettingsDialog({
                 </SelectContent>
               </Select>
             </div>
+
           </TabsContent>
         </Tabs>
       </DialogContent>
