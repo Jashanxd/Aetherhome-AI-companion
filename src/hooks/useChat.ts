@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { sendChatMessage, type ChatHistoryEntry } from "@/services/chat";
 import { synthesizeVoice } from "@/services/api";
-import { requestNextMedia } from "@/services/media";
+import { requestNextMedia, syncMediaConfig } from "@/services/media";
 import { useAppStore, newMessageId } from "@/stores/appStore";
 import type { ChatMessage } from "@/types";
 
@@ -366,17 +366,42 @@ export function useChat() {
         /*
          * Media is deliberately fire-and-forget.
          * It never blocks the text response or voice.
+         *
+         * IMPORTANT:
+         * Media is strictly tied to the currently
+         * active companion. There is no fallback to
+         * Mia or any other companion.
          */
+        const mediaConfig =
+          companion?.mediaResponses;
+
         if (
-          companion?.mediaResponses?.enabled &&
+          companion &&
+          mediaConfig?.enabled &&
+          mediaConfig.folderPath?.trim() &&
           !abortRef.current?.signal.aborted
         ) {
           const companionId =
             companion.id;
 
-          void requestNextMedia(
+          /*
+           * Re-register this companion's own
+           * folder before requesting media.
+           *
+           * This prevents the backend from using
+           * a stale or missing registration for
+           * this companion ID.
+           */
+          void syncMediaConfig(
             companionId,
+            mediaConfig,
           )
+            .catch(() => undefined)
+            .then(() =>
+              requestNextMedia(
+                companionId,
+              ),
+            )
             .then((media) => {
               if (media) {
                 useAppStore
