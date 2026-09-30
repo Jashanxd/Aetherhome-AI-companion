@@ -161,3 +161,43 @@ export async function checkBackendHealth(
     clearTimeout(timeout);
   }
 }
+/** Local Kokoro TTS server (separate from the FastAPI chat backend). */
+export const DEFAULT_TTS_BASE_URL = "http://127.0.0.1:8001";
+
+let ttsBaseUrl = DEFAULT_TTS_BASE_URL;
+
+export function setTtsBaseUrl(url: string) {
+  ttsBaseUrl = url.replace(/\/+$/, "") || DEFAULT_TTS_BASE_URL;
+}
+
+export interface SynthesizeOptions {
+  text: string;
+  voice: string;
+  speed: number;
+  signal?: AbortSignal | undefined;
+}
+
+/** POST /synthesize on the Kokoro server; returns the WAV audio Blob. */
+export async function synthesizeSpeech({
+  text,
+  voice,
+  speed,
+  signal,
+}: SynthesizeOptions): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(`${ttsBaseUrl}/synthesize`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice, speed }),
+      ...(signal ? { signal } : {}),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new ApiError(`Cannot reach the local voice server at ${ttsBaseUrl}.`);
+  }
+  if (!response.ok) {
+    throw new ApiError(`Voice synthesis failed (${response.status})`, response.status);
+  }
+  return response.blob();
+}
