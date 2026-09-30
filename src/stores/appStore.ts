@@ -225,7 +225,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "local-companion-store",
-      version: 2,
+      version: 3,
       skipHydration: true,
       migrate: (persisted, fromVersion) => {
         const data = (persisted ?? {}) as { companions?: Array<Record<string, unknown>> };
@@ -238,6 +238,8 @@ export const useAppStore = create<AppState>()(
         return data as never;
       },
       storage: createJSONStorage(() => localStorage),
+      // Persisted companion/conversation data always wins over the in-memory defaults.
+      merge: (persisted, current) => mergePersisted(persisted, current),
       partialize: (state) => ({
         companions: state.companions,
         activeCompanionId: state.activeCompanionId,
@@ -251,5 +253,14 @@ export const useAppStore = create<AppState>()(
     },
   ),
 );
+
+/**
+ * Rehydrate as early as possible on the client so no action can write the
+ * default state back over saved companions before restore happens.
+ */
+if (typeof window !== "undefined") {
+  void useAppStore.persist.rehydrate();
+}
+
 
 export const newMessageId = id;
