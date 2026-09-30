@@ -75,7 +75,7 @@ export function CompanionSettingsDialog({
             <TabsTrigger value="personality">Personality</TabsTrigger>
             <TabsTrigger value="model">Model</TabsTrigger>
             <TabsTrigger value="voice">Voice</TabsTrigger>
-            <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="images">Images &amp; Media</TabsTrigger>
           </TabsList>
 
           <TabsContent value="identity" className="space-y-4 pt-4">
@@ -254,6 +254,66 @@ export function CompanionSettingsDialog({
           </TabsContent>
 
           <TabsContent value="images" className="space-y-4 pt-4">
+            <div className="space-y-4 rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm">Media responses</p>
+                  <p className="text-xs text-muted-foreground">
+                    Attach one image from this companion's local folder after each reply.
+                  </p>
+                </div>
+                <Switch
+                  checked={media.enabled}
+                  onCheckedChange={(enabled) => patchMedia({ enabled })}
+                  aria-label="Toggle media responses"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Folder path</Label>
+                <Input
+                  value={media.folderPath ?? ""}
+                  placeholder={"C:\\Users\\you\\Pictures\\Mia"}
+                  className="font-mono text-xs"
+                  onChange={(e) => patchMedia({ folderPath: e.target.value || null })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Read only by your local backend. Files are never copied or uploaded.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Allowed types</Label>
+                <div className="flex flex-wrap gap-4">
+                  {MEDIA_FILE_TYPES.map((type) => (
+                    <label key={type} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={media.allowedTypes.includes(type)}
+                        onCheckedChange={(checked) =>
+                          patchMedia({
+                            allowedTypes: checked
+                              ? [...media.allowedTypes, type]
+                              : media.allowedTypes.filter((t) => t !== type),
+                          })
+                        }
+                      />
+                      {type}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm">Avoid repeats</p>
+                  <p className="text-xs text-muted-foreground">
+                    Use every file once before any repeats.
+                  </p>
+                </div>
+                <Switch
+                  checked={media.avoidRepeats}
+                  onCheckedChange={(avoidRepeats) => patchMedia({ avoidRepeats })}
+                />
+              </div>
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
                 <p className="text-sm">Image generation</p>
@@ -318,64 +378,6 @@ export function CompanionSettingsDialog({
               </Select>
             </div>
 
-            <div className="space-y-4 rounded-lg border border-border p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm">Media responses</p>
-                  <p className="text-xs text-muted-foreground">
-                    Attach one image from this companion's local folder after each reply.
-                  </p>
-                </div>
-                <Switch
-                  checked={media.enabled}
-                  onCheckedChange={(enabled) => patchMedia({ enabled })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Folder path</Label>
-                <Input
-                  value={media.folderPath ?? ""}
-                  placeholder={"C:\\Users\\you\\Pictures\\Mia"}
-                  className="font-mono text-xs"
-                  onChange={(e) => patchMedia({ folderPath: e.target.value || null })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Read only by your local backend. Files are never copied or uploaded.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Allowed types</Label>
-                <div className="flex flex-wrap gap-4">
-                  {MEDIA_FILE_TYPES.map((type) => (
-                    <label key={type} className="flex items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={media.allowedTypes.includes(type)}
-                        onCheckedChange={(checked) =>
-                          patchMedia({
-                            allowedTypes: checked
-                              ? [...media.allowedTypes, type]
-                              : media.allowedTypes.filter((t) => t !== type),
-                          })
-                        }
-                      />
-                      {type}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm">Avoid repeats</p>
-                  <p className="text-xs text-muted-foreground">
-                    Use every file once before any repeats.
-                  </p>
-                </div>
-                <Switch
-                  checked={media.avoidRepeats}
-                  onCheckedChange={(avoidRepeats) => patchMedia({ avoidRepeats })}
-                />
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
