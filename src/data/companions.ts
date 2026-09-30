@@ -1,4 +1,14 @@
-import type { Companion } from "@/types";
+import type { Companion, CompanionMediaResponses } from "@/types";
+
+export function defaultMediaResponses(): CompanionMediaResponses {
+  return {
+    enabled: false,
+    folderPath: null,
+    allowedTypes: ["jpg", "jpeg", "png", "webp", "gif"],
+    frequency: "every_response",
+    avoidRepeats: true,
+  };
+}
 
 export function createCompanion(partial: Partial<Companion> & { name: string }): Companion {
   const id = partial.id ?? `companion-${Math.random().toString(36).slice(2, 10)}`;
@@ -29,6 +39,7 @@ export function createCompanion(partial: Partial<Companion> & { name: string }):
       shortTermTurns: 12,
       longTermEnabled: false,
     },
+    mediaResponses: partial.mediaResponses ?? defaultMediaResponses(),
     appearance: partial.appearance ?? {
       hue: 195,
       modelUrl: null,
