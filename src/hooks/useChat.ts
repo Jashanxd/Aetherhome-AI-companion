@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { sendChatMessage, type ChatHistoryEntry } from "@/services/chat";
-import { requestNextMedia } from "@/services/media";
+import { requestNextMedia, syncMediaConfig } from "@/services/media";
 import { useAppStore, newMessageId } from "@/stores/appStore";
 import type { ChatMessage } from "@/types";
 
@@ -92,9 +92,20 @@ export function useChat() {
         useAppStore.getState().setCompanionState("talking");
         await reveal(placeholder.id, reply);
         // Fire-and-forget: media never blocks or affects the reply.
-        if (companion?.mediaResponses?.enabled && !abortRef.current?.signal.aborted) {
+        // Strictly the active companion's own config — no fallback to any other companion.
+        const mediaConfig = companion?.mediaResponses;
+        if (
+          companion &&
+          mediaConfig?.enabled &&
+          mediaConfig.folderPath?.trim() &&
+          !abortRef.current?.signal.aborted
+        ) {
           const companionId = companion.id;
-          void requestNextMedia(companionId)
+          // Re-register this companion's own folder first so the backend never
+          // serves a stale or missing registration for this id.
+          void syncMediaConfig(companionId, mediaConfig)
+            .catch(() => undefined)
+            .then(() => requestNextMedia(companionId))
             .then((media) => {
               if (media) useAppStore.getState().patchMessage(placeholder.id, { media });
             })
