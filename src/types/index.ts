@@ -61,6 +61,25 @@ export interface MemoryEntry {
   createdAt: number;
 }
 
+export type MediaFileType = "jpg" | "jpeg" | "png" | "webp" | "gif";
+export const MEDIA_FILE_TYPES: MediaFileType[] = ["jpg", "jpeg", "png", "webp", "gif"];
+
+/** Companion-specific local media responses. Filesystem access happens only in the backend. */
+export interface CompanionMediaResponses {
+  enabled: boolean;
+  folderPath: string | null;
+  allowedTypes: MediaFileType[];
+  frequency: "every_response";
+  avoidRepeats: boolean;
+}
+
+/** Reference only — never a URL or blob, so nothing is duplicated into local storage. */
+export interface ChatMediaAttachment {
+  mediaId: string;
+  filename: string;
+  mimeType: string;
+}
+
 export interface CompanionAppearance {
   /** Accent hue used by the 3D presence + avatar ring. */
   hue: number;
@@ -80,6 +99,7 @@ export interface Companion {
   voice: CompanionVoiceSettings;
   images: CompanionImageSettings;
   memory: CompanionMemorySettings;
+  mediaResponses: CompanionMediaResponses;
   appearance: CompanionAppearance;
 }
 
@@ -102,6 +122,7 @@ export interface ChatMessage {
   error?: boolean;
   imagePending?: boolean;
   image?: ChatImage;
+  media?: ChatMediaAttachment;
 }
 
 export interface Conversation {

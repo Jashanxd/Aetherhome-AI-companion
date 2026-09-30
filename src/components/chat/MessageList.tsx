@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { ImageIcon, TriangleAlert } from "lucide-react";
 import { CompanionAvatar } from "@/components/companion/CompanionAvatar";
 import type { ChatMessage, Companion } from "@/types";
+import { mediaFileUrl } from "@/services/media";
 
 function timeLabel(ts: number) {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -74,6 +75,14 @@ export function MessageList({
                     <span className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-elevated px-3 py-2 text-xs text-muted-foreground">
                       <ImageIcon className="size-3.5 animate-pulse-soft" /> Generating image…
                     </span>
+                  )}
+                  {message.media && (
+                    <img
+                      src={mediaFileUrl(message.media.mediaId)}
+                      alt={message.media.filename}
+                      loading="lazy"
+                      className="mt-3 max-h-96 w-auto max-w-full rounded-xl border border-border"
+                    />
                   )}
                   {message.image && (
                     <img
