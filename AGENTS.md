@@ -15,4 +15,4 @@
 - Client state (companions, conversations, models, settings) lives in the zustand store `src/stores/appStore.ts` with `skipHydration` + `useHydrateStore`; avoids SSR/localStorage hydration mismatches.
 - Model lists are always fetched from `GET /models`; never hardcode model ids.
 - The 3D companion renders only through `components/companion/Companion3D.tsx`, lazy-loaded inside `ClientOnly`; three.js must not enter the SSR bundle.
-- Unimplemented local capabilities (image generation, voice, long-term memory) are stubbed as throwing service seams (`services/images.ts`, `services/voice.ts`) — never faked in the UI.
+- Unimplemented local capabilities (image generation, speech-to-text, long-term memory) are stubbed as throwing service seams; TTS goes to local Kokoro at :8001 via `synthesizeSpeech` in api.ts, played by `services/voice.ts` — never faked in the UI.
