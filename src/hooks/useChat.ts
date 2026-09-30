@@ -128,8 +128,6 @@ export function useChat() {
 
       const userMessage: ChatMessage = {
         id: newMessageId(),
-        conversationId:
-          state.activeConversationId,
         role: "user",
         content: trimmed,
         createdAt: Date.now(),
@@ -139,9 +137,7 @@ export function useChat() {
 
       const placeholder: ChatMessage = {
         id: newMessageId(),
-        conversationId:
-          state.activeConversationId,
-        role: "assistant",
+        role: "companion",
         content: "",
         createdAt: Date.now(),
         modelId,
@@ -177,7 +173,7 @@ export function useChat() {
 
         const signal = abortRef.current?.signal;
         const voicePromise =
-          useAppStore.getState().settings.voiceEnabled && companion?.voice.enabled !== false
+          useAppStore.getState().settings.voiceEnabled
             ? speak(reply, {
                 voiceId: companion?.voice.voiceId,
                 signal,

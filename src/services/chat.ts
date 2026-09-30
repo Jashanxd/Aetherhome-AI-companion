@@ -8,8 +8,8 @@ export interface ChatHistoryEntry {
 export interface ChatRequestPayload {
   message: string;
   history: ChatHistoryEntry[];
-  systemPrompt?: string;
-  personality?: string;
+  systemPrompt?: string | undefined;
+  personality?: string | undefined;
 }
 
 interface RawChatResponse {
